@@ -6,14 +6,21 @@ public:
     float x, y, width, height;
     float velocityX = 0, velocityY = 0;
     Color color;
+    Texture2D* texture;
     //bool canJump = false, onSurface = false;
 
-    GameObject(float x, float y, float width, float height, Color color)
-        : x(x), y(y), width(width), height(height), color(color) {}
+    GameObject(float x, float y, float width, float height, Color color, Texture2D* texture = NULL)
+        : x(x), y(y), width(width), height(height), color(color), texture(texture) {}
 
     void draw() const {
-        Rectangle playerRect = (Rectangle){x, y, width, height};
-        DrawRectangleRec(playerRect, color);
+        if (texture != NULL) {
+            //This doesn't check the width and height of the input image
+            Vector2 position = {x, y};
+            DrawTextureV(*texture, position, WHITE);
+        } else {
+            Rectangle playerRect = (Rectangle){x, y, width, height};
+            DrawRectangleRec(playerRect, color);
+        }
     }
 
     float centerX() const { return x + width * 0.5f; }
