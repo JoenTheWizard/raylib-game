@@ -15,7 +15,7 @@
 //Update the player. This will be done in the render loop
 void UpdatePlayer(Player& player, std::vector<GameObject>& tiles, float dt);
 //Draw the environment. This should be done before the render loop
-std::vector<GameObject> drawEnvironment(GameObject& player);
+std::vector<GameObject> drawEnvironment(GameObject& player, Texture2D* texture);
 
 int main(int argc, char* argv[]) {
     //Screen width and height
@@ -36,6 +36,9 @@ int main(int argc, char* argv[]) {
     camera.rotation = 0.0f;
     camera.zoom = 1.0f;
 
+    //Block texture
+    Texture2D block_texture = LoadTexture("resources/stoneblock.png");
+
     //Set Target frames
     SetTargetFPS(60);
 
@@ -44,7 +47,7 @@ int main(int argc, char* argv[]) {
         float dt = GetFrameTime();
 
         //Obstacle
-        std::vector<GameObject> tiles = drawEnvironment(player);
+        std::vector<GameObject> tiles = drawEnvironment(player, &block_texture);
 
         //Update
         UpdatePlayer(player, tiles, dt);
@@ -70,11 +73,13 @@ int main(int argc, char* argv[]) {
         EndDrawing();
     }
 
+    //Deallocate
+    UnloadTexture(block_texture);
+
     //Close window on exit
     CloseWindow();
 
     return 0;
-  
 }
 
 void UpdatePlayer(Player& player, std::vector<GameObject>& tiles, float dt) {
@@ -99,7 +104,7 @@ void UpdatePlayer(Player& player, std::vector<GameObject>& tiles, float dt) {
     player.canJump = true;
 }
 
-std::vector<GameObject> drawEnvironment(GameObject& player) {
+std::vector<GameObject> drawEnvironment(GameObject& player, Texture2D* texture) {
   std::vector<GameObject> gameEnvironment;
   int l = player.x - 350;
   int x = l - (l % 50);
@@ -109,7 +114,7 @@ std::vector<GameObject> drawEnvironment(GameObject& player) {
   for (int i = 0; i < 16; i++) {
     float p2d = perlin2d(x/50, 0, 0.3, 4) * 200;
     for (int j = p2d - fmod(p2d, 50); j < 400; j += 50) {
-      gameEnvironment.push_back(GameObject(x, j, 50, 50, DARKGRAY));
+      gameEnvironment.push_back(GameObject(x, j, 50, 50, DARKGRAY, texture));
     }
     x += 50;
   }
