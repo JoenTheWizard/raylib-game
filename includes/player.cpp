@@ -26,3 +26,25 @@ void Player::resolveCollision(const GameObject& other) {
         }
     }
 }
+
+void Player::UpdatePlayer(std::vector<GameObject>& tiles, float dt) {
+  if (IsKeyDown(KEY_D)) x += PLAYER_SPEED * dt;
+  if (IsKeyDown(KEY_A)) x -= PLAYER_SPEED * dt;
+  if (IsKeyPressed(KEY_SPACE) && canJump && onSurface) {
+    velocityY -= PLAYER_JUMP_SPEED;
+    canJump = false;
+  }
+
+  applyGravity(GRAVITY, dt);
+
+  //Test Collision
+  onSurface = false;        
+  for (const auto& tile : tiles) {
+    if (testCollision(tile)) {
+        resolveCollision(tile);
+    }
+  }
+  //Check if player is on surface
+  if (onSurface)
+    canJump = true;
+}

@@ -6,13 +6,7 @@
 #include "includes/gameobject.hpp"
 #include "includes/player.hpp"
 
-#define PLAYER_SPEED 300.f
-#define PLAYER_JUMP_SPEED 250.f
-#define GRAVITY 500.f
-
-//Update the player. This will be done in the render loop
-void UpdatePlayer(Player& player, std::vector<GameObject>& tiles, float dt);
-//Draw the environment. This should be done before the render loop
+//Draw the environment. This should be done in the render loop for now
 std::vector<GameObject> drawEnvironment(GameObject& player, Texture2D* texture);
 
 int main(int argc, char* argv[]) {
@@ -22,7 +16,7 @@ int main(int argc, char* argv[]) {
 
     //Initialize the Raylib (GLFW) with resizable window
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-    InitWindow(screenWidth, screenHeight, "Small Game");
+    InitWindow(screenWidth, screenHeight, "Infinite Terrain Game");
 
     //Player
     Player player(0, -150, 50, 50, RED);
@@ -48,7 +42,7 @@ int main(int argc, char* argv[]) {
         std::vector<GameObject> tiles = drawEnvironment(player, &block_texture);
 
         //Update
-        UpdatePlayer(player, tiles, dt);
+        player.UpdatePlayer(tiles, dt);
         //std::cout << player.onSurface << " " << player.canJump << std::endl;
 
         //Camera update
@@ -78,28 +72,6 @@ int main(int argc, char* argv[]) {
     CloseWindow();
 
     return 0;
-}
-
-void UpdatePlayer(Player& player, std::vector<GameObject>& tiles, float dt) {
-  if (IsKeyDown(KEY_D)) player.x += PLAYER_SPEED * dt;
-  if (IsKeyDown(KEY_A)) player.x -= PLAYER_SPEED * dt;
-  if (IsKeyPressed(KEY_SPACE) && player.canJump && player.onSurface) {
-    player.velocityY -= PLAYER_JUMP_SPEED;
-    player.canJump = false;
-  }
-
-  player.applyGravity(GRAVITY, dt);
-
-  //Test Collision
-  player.onSurface = false;        
-  for (const auto& tile : tiles) {
-    if (player.testCollision(tile)) {
-        player.resolveCollision(tile);
-    }
-  }
-  //Check if player is on surface
-  if (player.onSurface)
-    player.canJump = true;
 }
 
 std::vector<GameObject> drawEnvironment(GameObject& player, Texture2D* texture) {
