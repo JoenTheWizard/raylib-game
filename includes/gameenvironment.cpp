@@ -5,7 +5,7 @@ GameEnvironment::GameEnvironment() {
   dirt = LoadTexture("resources/dirt.png");
 }
 
-
+//Will make it take defined arguments later
 std::vector<GameObject> GameEnvironment::draw_perlin_continous(Player& player) {
   std::vector<GameObject> gameEnvironment;
   int l = player.x - 350;
@@ -24,6 +24,7 @@ std::vector<GameObject> GameEnvironment::draw_perlin_continous(Player& player) {
   return gameEnvironment;
 }
 
+//Will make it take defined arguments later
 std::vector<GameObject> GameEnvironment::draw_tile_index() {
   int env[16][13] = {
    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
