@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
     camera.zoom = 1.0f;
 
     //Block texture
-    Texture2D block_texture = LoadTexture("resources/stoneblock.png");
+    Texture2D block_texture = LoadTexture("resources/dirt.png");
 
     //Set Target frames
     SetTargetFPS(60);
