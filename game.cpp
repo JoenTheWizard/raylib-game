@@ -57,6 +57,9 @@ int main(int argc, char* argv[]) {
         EndDrawing();
     }
 
+    //Clean and deallocate environment (remove textures)
+    environment.clean();
+
     //Close window on exit
     CloseWindow();
 

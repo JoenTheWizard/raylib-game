@@ -60,8 +60,7 @@ std::vector<GameObject> GameEnvironment::draw_tile_index() {
   return gameEnvironment;
 }
 
-
-GameEnvironment::~GameEnvironment() {
+void GameEnvironment::clean(void) {
   UnloadTexture(stone);
   UnloadTexture(dirt);
 }
