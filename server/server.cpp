@@ -41,6 +41,7 @@ int main(int argc, char** argv) {
     while (true) {
         //Obtain packet
         ssize_t packet = recvfrom(sockfd, buffer, 256, 0, (struct sockaddr*)&clientAddress, &clientAdr_len);
+        buffer[packet] = '\0';
 
         //Clear terminal screen
         std::cout << "\033c";
