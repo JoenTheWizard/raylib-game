@@ -28,6 +28,7 @@ void Player::resolveCollision(const GameObject& other) {
 }
 
 void Player::UpdatePlayer(std::vector<GameObject>& tiles, float dt) {
+  float prev_x = x, prev_y = y;
   if (IsKeyDown(KEY_D)) x += PLAYER_SPEED * dt;
   if (IsKeyDown(KEY_A)) x -= PLAYER_SPEED * dt;
   if (IsKeyPressed(KEY_SPACE) && canJump && onSurface) {
@@ -47,4 +48,9 @@ void Player::UpdatePlayer(std::vector<GameObject>& tiles, float dt) {
   //Check if player is on surface
   if (onSurface)
     canJump = true;
+
+  //Send rectangle position over UDP
+  if (prev_x != x || prev_y != y) {
+    client.send_position(x, y);
+  }
 }
