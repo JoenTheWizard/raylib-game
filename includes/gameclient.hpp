@@ -16,6 +16,7 @@ class GameClient {
 public:
     //Initialize socket
     int sockfd; struct sockaddr_in serverAddr;
+    //Pass in server IP and port number
     GameClient(const char* ip_address, uint16_t port);
     
     //Send position (x, y) coordinates of the client to server
