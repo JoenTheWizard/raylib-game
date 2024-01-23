@@ -15,12 +15,15 @@ public:
     //Game client for connection to server
     GameClient client;
     Player(float x, float y, float width, float height, Color color)
-        : GameObject(x, y, width, height, color), client("127.0.0.1", 5656) {
+        : GameObject(x, y, width, height, color), client("192.168.0.24", 5656) {
+        client.send_connect();
+        client.assign_id();
         //Send this player's position information to the server
         client.send_position(x, y);
     }
 
     ~Player() {
+        client.send_disconnect();
         //Close the socket
         client.close_socket();
     }

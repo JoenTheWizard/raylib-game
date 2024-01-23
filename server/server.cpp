@@ -11,6 +11,17 @@
 
 const int MAX_CLIENTS = 3;
 
+//Clients struct - store the address, ID and position of each client
+typedef struct {
+    struct sockaddr_in addr; uint16_t port;
+    int id;
+    float x; float y;
+} Client;
+
+//This array stores all the clients and their respective IDs. The indexes will change with connections
+//and disconnections using the IDs (IDs = index)
+Client clients[MAX_CLIENTS];
+
 int main(int argc, char** argv) {
 
     //Store the number of clients
@@ -38,6 +49,8 @@ int main(int argc, char** argv) {
     struct sockaddr_in clientAddress;
     socklen_t clientAdr_len = sizeof(clientAddress);
 
+    char clientName[INET_ADDRSTRLEN];
+
     while (true) {
         //Obtain packet
         ssize_t packet = recvfrom(sockfd, buffer, 256, 0, (struct sockaddr*)&clientAddress, &clientAdr_len);
@@ -46,8 +59,40 @@ int main(int argc, char** argv) {
         //Clear terminal screen
         std::cout << "\033c";
 
+        //On connect and disconnect
+        if (!strcmp("Connect", buffer)) {
+            //Send the player ID to the connected user
+            char msg[12];
+            sprintf(msg, "playerID:%d", num_of_clients);
+            sendto(sockfd, msg, strlen(msg), 0, (struct sockaddr*)&clientAddress, clientAdr_len);
+            //Assign the ID to the clients
+            clients[num_of_clients].id = num_of_clients;
+            clients[num_of_clients].port = ntohs(clientAddress.sin_port);
+            memcpy(&clients[num_of_clients].addr, &clientAddress, sizeof(clientAddress));
+            num_of_clients++;
+        }
+        if (!strcmp("Disconnect",buffer))
+            num_of_clients--;
+
+
+        //Number of clients connected
+        std::cout << "Clients: " << num_of_clients << std::endl;
+
         if (packet > 0) {
-            std::cout << "Received: " << buffer << std::endl;
+            inet_ntop(AF_INET, &(clientAddress.sin_addr), clientName, INET_ADDRSTRLEN);
+            std::cout << "Received ("  << clientName << ":" << ntohs(clientAddress.sin_port) << ") - " << buffer <<  std::endl;
+
+            //If we get position update packet then update array
+            int id; float x, y;
+            if (sscanf(buffer, "%d:%f,%f", &id, &x, &y) == 3) {
+                clients[id].x = x; 
+                clients[id].y = y; 
+            }
+
+            //Print the clients
+            for (int i = 0; i < num_of_clients; i++) {
+                std::cout << "Player" << clients[i].id << ": (" << clients[i].x << "," << clients[i].y << ")" << std::endl;
+            }
         }
         else {
             std::cerr << "Error receiving message" << std::endl;
