@@ -33,6 +33,11 @@ int main(int argc, char** argv) {
         return -1;
     }
 
+    //All clients ID initialize to ID = -1
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+        clients[i].id = -1;
+    }
+
     //Create socket
     int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 
@@ -62,17 +67,33 @@ int main(int argc, char** argv) {
         //On connect and disconnect
         if (!strcmp("Connect", buffer)) {
             //Send the player ID to the connected user
-            char msg[12];
-            sprintf(msg, "playerID:%d", num_of_clients);
-            sendto(sockfd, msg, strlen(msg), 0, (struct sockaddr*)&clientAddress, clientAdr_len);
-            //Assign the ID to the clients
-            clients[num_of_clients].id = num_of_clients;
-            clients[num_of_clients].port = ntohs(clientAddress.sin_port);
-            memcpy(&clients[num_of_clients].addr, &clientAddress, sizeof(clientAddress));
-            num_of_clients++;
+            for (int i = 0; i < MAX_CLIENTS; i++) {
+                if (clients[i].id == -1) {
+                    //Send the ID to client
+                    char msg[12];
+                    sprintf(msg, "playerID:%d", i);
+                    sendto(sockfd, msg, strlen(msg), 0, (struct sockaddr*)&clientAddress, clientAdr_len);
+                    //Assign the client in the clients array
+                    clients[i].id = i;
+                    clients[i].port = ntohs(clientAddress.sin_port);
+                    memcpy(&clients[i].addr, &clientAddress, sizeof(clientAddress));
+                    num_of_clients++;
+                    break;
+                }
+            }
         }
-        if (!strcmp("Disconnect",buffer))
+
+        int disconnectedClientId;
+        if (sscanf(buffer, "Disconnect:%d", &disconnectedClientId)) {
+            //Shift elements to the left starting from the removed client index
+            for (int i = 0; i < MAX_CLIENTS; i++) {
+                if (clients[i].id == disconnectedClientId) {
+                    clients[i].id = -1;
+                    break;
+                }
+            }
             num_of_clients--;
+        }
 
 
         //Number of clients connected
@@ -90,8 +111,9 @@ int main(int argc, char** argv) {
             }
 
             //Print the clients
-            for (int i = 0; i < num_of_clients; i++) {
-                std::cout << "Player" << clients[i].id << ": (" << clients[i].x << "," << clients[i].y << ")" << std::endl;
+            for (int i = 0; i < MAX_CLIENTS; i++) {
+                if (clients[i].id != -1)
+                    std::cout << "Player" << clients[i].id << ": (" << clients[i].x << "," << clients[i].y << ")" << std::endl;
             }
         }
         else {

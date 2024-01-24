@@ -28,7 +28,8 @@ ssize_t GameClient::send_connect() {
 
 ssize_t GameClient::send_disconnect() {
     //Send connect over UDP
-    char buffer[] = "Disconnect";
+    char buffer[16];
+    sprintf(buffer, "Disconnect:%d", playerID);
     ssize_t len = sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
 
     return len;
