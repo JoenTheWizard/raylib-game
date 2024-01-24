@@ -64,41 +64,7 @@ int main(int argc, char** argv) {
         //Clear terminal screen
         std::cout << "\033c";
 
-        //On connect and disconnect
-        if (!strcmp("Connect", buffer)) {
-            //Send the player ID to the connected user
-            for (int i = 0; i < MAX_CLIENTS; i++) {
-                if (clients[i].id == -1) {
-                    //Send the ID to client
-                    char msg[12];
-                    sprintf(msg, "playerID:%d", i);
-                    sendto(sockfd, msg, strlen(msg), 0, (struct sockaddr*)&clientAddress, clientAdr_len);
-                    //Assign the client in the clients array
-                    clients[i].id = i;
-                    clients[i].port = ntohs(clientAddress.sin_port);
-                    memcpy(&clients[i].addr, &clientAddress, sizeof(clientAddress));
-                    num_of_clients++;
-                    break;
-                }
-            }
-        }
-
-        int disconnectedClientId;
-        if (sscanf(buffer, "Disconnect:%d", &disconnectedClientId)) {
-            //Shift elements to the left starting from the removed client index
-            for (int i = 0; i < MAX_CLIENTS; i++) {
-                if (clients[i].id == disconnectedClientId) {
-                    clients[i].id = -1;
-                    break;
-                }
-            }
-            num_of_clients--;
-        }
-
-
-        //Number of clients connected
-        std::cout << "Clients: " << num_of_clients << std::endl;
-
+        //On received valid packet
         if (packet > 0) {
             inet_ntop(AF_INET, &(clientAddress.sin_addr), clientName, INET_ADDRSTRLEN);
             std::cout << "Received ("  << clientName << ":" << ntohs(clientAddress.sin_port) << ") - " << buffer <<  std::endl;
@@ -109,6 +75,41 @@ int main(int argc, char** argv) {
                 clients[id].x = x; 
                 clients[id].y = y; 
             }
+
+            //On client Connect
+            if (!strcmp("Connect", buffer)) {
+                //Send the player ID to the connected user
+                for (int i = 0; i < MAX_CLIENTS; i++) {
+                    if (clients[i].id == -1) {
+                        //Send the ID to client
+                        char msg[12];
+                        sprintf(msg, "playerID:%d", i);
+                        sendto(sockfd, msg, strlen(msg), 0, (struct sockaddr*)&clientAddress, clientAdr_len);
+                        //Assign the client in the clients array
+                        clients[i].id = i;
+                        clients[i].port = ntohs(clientAddress.sin_port);
+                        memcpy(&clients[i].addr, &clientAddress, sizeof(clientAddress));
+                        num_of_clients++;
+                        break;
+                    }
+                }
+            }
+
+            //On client Disconnect
+            int disconnectedClientId;
+            if (sscanf(buffer, "Disconnect:%d", &disconnectedClientId)) {
+                //Shift elements to the left starting from the removed client index
+                for (int i = 0; i < MAX_CLIENTS; i++) {
+                    if (clients[i].id == disconnectedClientId) {
+                        clients[i].id = -1;
+                        num_of_clients--;
+                        break;
+                    }
+                }
+            }
+
+            //Number of clients connected
+            std::cout << "Clients: " << num_of_clients << std::endl;
 
             //Print the clients
             for (int i = 0; i < MAX_CLIENTS; i++) {
