@@ -66,6 +66,7 @@ int main(int argc, char** argv) {
 
         //On received valid packet
         if (packet > 0) {
+            //Print the packet received
             inet_ntop(AF_INET, &(clientAddress.sin_addr), clientName, INET_ADDRSTRLEN);
             std::cout << "Received ("  << clientName << ":" << ntohs(clientAddress.sin_port) << ") - " << buffer <<  std::endl;
 
@@ -111,10 +112,13 @@ int main(int argc, char** argv) {
             //Number of clients connected
             std::cout << "Clients: " << num_of_clients << std::endl;
 
-            //Print the clients
+            //Print the clients and broadcast (using unicast method)
             for (int i = 0; i < MAX_CLIENTS; i++) {
-                if (clients[i].id != -1)
-                    std::cout << "Player" << clients[i].id << ": (" << clients[i].x << "," << clients[i].y << ")" << std::endl;
+                if (clients[i].id == -1) continue;
+                std::cout << "Player" << clients[i].id << ": (" << clients[i].x << "," << clients[i].y << ")" << std::endl; 
+                //Broadcast here
+                if (memcmp(&clients[i].addr, &clientAddress, clientAdr_len) != 0)
+                    sendto(sockfd, buffer, strlen(buffer), 0, (struct sockaddr*)&clients[i].addr, sizeof(clients[i].addr));
             }
         }
         else {
