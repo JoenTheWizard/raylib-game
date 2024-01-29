@@ -86,10 +86,18 @@ int main(int argc, char** argv) {
                         char msg[12];
                         sprintf(msg, "playerID:%d", i);
                         sendto(sockfd, msg, strlen(msg), 0, (struct sockaddr*)&clientAddress, clientAdr_len);
-                        //Assign the client in the clients array
+                        //Send the positions of all other connected clients when the new client connects
+                        for (int j = 0; j < MAX_CLIENTS; j++) {
+                            if (clients[j].id == -1) continue;
+                            char pos[40];
+                            sprintf(pos, "%d:%f,%f", clients[j].id, clients[j].x, clients[j].y);
+                            sendto(sockfd, pos, strlen(pos), 0, (struct sockaddr*)&clientAddress, clientAdr_len);
+                        }
+                        //Assign the new client in the clients array
                         clients[i].id = i;
                         clients[i].port = ntohs(clientAddress.sin_port);
                         memcpy(&clients[i].addr, &clientAddress, sizeof(clientAddress));
+                        //Increment number of clients since client has connected
                         num_of_clients++;
                         break;
                     }
@@ -99,7 +107,7 @@ int main(int argc, char** argv) {
             //On client Disconnect
             int disconnectedClientId;
             if (sscanf(buffer, "Disconnect:%d", &disconnectedClientId)) {
-                //Shift elements to the left starting from the removed client index
+                //When a client disconnects, only the id is set to -1 and num_of_clients is decremented
                 for (int i = 0; i < MAX_CLIENTS; i++) {
                     if (clients[i].id == disconnectedClientId) {
                         clients[i].id = -1;

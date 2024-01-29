@@ -2,8 +2,8 @@
 #include <atomic>
 #include "includes/gameenvironment.hpp"
 
-//TODO
-//[*] Make sure to check when the client connects it grabs all the other clients position
+//TODO (Client/Server)
+//[*] Try implementing interpolation using tickrate
 //[*] The client on the %d:%f,%f packet is constantly setting the ID which shouldn't be neccessary
 //[*] Clean the code
 
