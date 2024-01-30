@@ -109,6 +109,7 @@ int main(int argc, char* argv[]) {
 
         //Camera update
         camera.target = (Vector2){ player.centerX(), player.centerY() };
+        camera.offset = (Vector2){ GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f };
 
         //Draw
         BeginDrawing();
