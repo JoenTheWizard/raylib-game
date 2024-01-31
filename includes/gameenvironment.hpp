@@ -8,7 +8,7 @@
 
 class GameEnvironment {
 public:
-  Texture2D dirt, stone; 
+  Texture2D stone, dirt, grass; 
   GameEnvironment();
 
   //Draw the Perlin noise environment that draws relative to the current player's position. This should be done in the render loop for now
