@@ -1,6 +1,7 @@
 #include <thread>
 #include <atomic>
 #include "includes/gameenvironment.hpp"
+#include "includes/playerclient.hpp" //For client->server
 
 //TODO (Client/Server)
 //[*] Try implementing interpolation using tickrate
@@ -71,7 +72,7 @@ int main(int argc, char* argv[]) {
     InitWindow(screenWidth, screenHeight, "Block Game");
 
     //Player
-    Player player(0, -150, 50, 50, RED);
+    PlayerClient player(0, -150, 50, 50, RED, "192.168.0.24", 5656);
     
     //Atomic flag to signal the packet listener thread to stop
     std::atomic<bool> stopListening(false);
