@@ -6,7 +6,7 @@
 //TODO (Client/Server)
 //[*] Try implementing interpolation using tickrate
 //[*] The client on the %d:%f,%f packet is constantly setting the ID which shouldn't be neccessary
-//[*] Clean the code
+//[*] Clean the code (put these functions on separate .h files?)
 
 //The game client's struct and array
 const int MAX_CLIENTS = 3;
@@ -62,6 +62,24 @@ void listener_thread(sockaddr_in serverAddr, int sockfd, std::atomic<bool>& stop
     }
 }
 
+//Function to draw the text op top of other players connected to server  
+inline void DrawPlayerIdText(int playerId, float playerX, float playerY, float playerWidth, float playerHeight) {
+    Vector2 playerPosition = { playerX, playerY };
+    Vector2 playerSize = { playerWidth, playerHeight };
+
+    //Measure the text width
+    int textWidth = MeasureText(TextFormat("Player %d", playerId), 20);
+
+    //Calculate the center of the player
+    Vector2 textPosition = {
+        playerPosition.x + (playerSize.x / 2) - (textWidth / 2),
+        playerPosition.y - 20 //Assuming text height is 20, adjust accordingly
+    };
+
+    //Draw the text
+    DrawText(TextFormat("Player %d", playerId), textPosition.x, textPosition.y, 20, WHITE);
+}
+
 int main(int argc, char* argv[]) {
     //Screen width and height
     const int screenWidth = 650;
@@ -72,7 +90,7 @@ int main(int argc, char* argv[]) {
     InitWindow(screenWidth, screenHeight, "Block Game");
 
     //Player
-    PlayerClient player(0, -150, 50, 50, RED, "192.168.0.24", 5656);
+    PlayerClient player(0, -150, 50, 50, RED, "127.0.0.1", 5656);
     
     //Atomic flag to signal the packet listener thread to stop
     std::atomic<bool> stopListening(false);
@@ -118,15 +136,17 @@ int main(int argc, char* argv[]) {
 
             //Initialize the camera
             BeginMode2D(camera);
-            
             //Draw player
             player.draw();
             
             //Render other clients
             for (int i = 0; i < MAX_CLIENTS; i++) {
                 if (clients[i].id == -1) continue;
+                //Draw player(s) client via Rectangle
                 Rectangle playerRect = (Rectangle){clients[i].x, clients[i].y, player.width, player.height};
                 DrawRectangleRec(playerRect, RED);
+                //Draw text om top of player 
+                DrawPlayerIdText(clients[i].id, clients[i].x, clients[i].y, player.width, player.height); 
             }
 
             //Draw all the obstacles
