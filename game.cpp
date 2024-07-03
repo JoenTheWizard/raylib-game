@@ -2,87 +2,15 @@
 #include <atomic>
 #include "includes/gameenvironment.hpp"
 #include "includes/playerclient.hpp" //For client->server
+#include "includes/gamelistener.hpp" //For server->client
 
 //TODO (Client/Server)
 //[*] Try implementing interpolation using tickrate
 //[*] The client on the %d:%f,%f packet is constantly setting the ID which shouldn't be neccessary
-//[*] Clean the code (put these functions on separate .h files?)
-
-//The game client's struct and array
-const int MAX_CLIENTS = 3;
-typedef struct {
-    int id;
-    float x; float y;
-} Client;
-Client clients[MAX_CLIENTS];
-
-void listener_thread(sockaddr_in serverAddr, int sockfd, std::atomic<bool>& stopListening) {
-    char msg[40];
-    socklen_t serverAddrLen = sizeof(serverAddr);
-
-    while (!stopListening.load()) {
-        fd_set fds;
-        FD_ZERO(&fds);
-        FD_SET(sockfd, &fds);
-
-        struct timeval timeout;
-        timeout.tv_sec = 0;
-        timeout.tv_usec = 100000;  //Set the timeout to 100 milliseconds
-
-        int ready = select(sockfd + 1, &fds, NULL, NULL, &timeout);
-
-        if (ready > 0) {
-            ssize_t len = recvfrom(sockfd, msg, sizeof(msg), 0, (struct sockaddr*)&serverAddr, &serverAddrLen);
-            msg[len] = '\0';
-
-            if (len != -1) {
-                //std::cout << msg << std::endl;
-                //If we get position update packet then update array
-                int id; float x, y;
-                if (sscanf(msg, "%d:%f,%f", &id, &x, &y) == 3) {
-                    clients[id].id = id; //Constantly sets the id (need to change)
-                    clients[id].x = x; 
-                    clients[id].y = y; 
-                }
-
-                //On client Disconnect
-                int disconnectedClientId;
-                if (sscanf(msg, "Disconnect:%d", &disconnectedClientId)) {
-                    //Shift elements to the left starting from the removed client index
-                    for (int i = 0; i < MAX_CLIENTS; i++) {
-                        if (clients[i].id == disconnectedClientId) {
-                            clients[i].id = -1;
-                            break;
-                        }
-                    }
-                }
-
-            }
-        }
-    }
-}
-
-//Function to draw the text op top of other players connected to server  
-inline void DrawPlayerIdText(int playerId, float playerX, float playerY, float playerWidth, float playerHeight) {
-    Vector2 playerPosition = { playerX, playerY };
-    Vector2 playerSize = { playerWidth, playerHeight };
-
-    //Measure the text width
-    int textWidth = MeasureText(TextFormat("Player %d", playerId), 20);
-
-    //Calculate the center of the player
-    Vector2 textPosition = {
-        playerPosition.x + (playerSize.x / 2) - (textWidth / 2),
-        playerPosition.y - 20 //Assuming text height is 20, adjust accordingly
-    };
-
-    //Draw the text
-    DrawText(TextFormat("Player %d", playerId), textPosition.x, textPosition.y, 20, WHITE);
-}
 
 int main(int argc, char* argv[]) {
     //Screen width and height
-    const int screenWidth = 650;
+    const int screenWidth  = 650;
     const int screenHeight = 750;
 
     //Initialize the Raylib (GLFW) with resizable window
@@ -98,9 +26,7 @@ int main(int argc, char* argv[]) {
     std::thread listener(listener_thread, player.client.serverAddr, player.client.sockfd, std::ref(stopListening));
 
     //All clients ID initialize to ID = -1
-    for (int i = 0; i < MAX_CLIENTS; i++) {
-        clients[i].id = -1;
-    }
+    initialize_clients();
 
     //Camera
     Camera2D camera = { 0 };
@@ -136,18 +62,12 @@ int main(int argc, char* argv[]) {
 
             //Initialize the camera
             BeginMode2D(camera);
+
             //Draw player
             player.draw();
             
-            //Render other clients
-            for (int i = 0; i < MAX_CLIENTS; i++) {
-                if (clients[i].id == -1) continue;
-                //Draw player(s) client via Rectangle
-                Rectangle playerRect = (Rectangle){clients[i].x, clients[i].y, player.width, player.height};
-                DrawRectangleRec(playerRect, RED);
-                //Draw text om top of player 
-                DrawPlayerIdText(clients[i].id, clients[i].x, clients[i].y, player.width, player.height); 
-            }
+            //Render other clients connected to server
+            render_clients_pos(player);
 
             //Draw all the obstacles
             for (const auto& tile : tiles) {
